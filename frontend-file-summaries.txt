@@ -1,0 +1,23 @@
+{
+  "frontend/src/index.css": "Global styles with aviation-themed OKLCH color system (dark navy background, amber/golden primary accents), custom font imports for Inter and Space Grotesk, and utility classes for the app's visual design.",
+  "frontend/tailwind.config.js": "Extended Tailwind config with custom aviation color palette, Space Grotesk/Inter font families, custom shadow tokens, and fade-in animation keyframes.",
+  "frontend/src/utils/timeUtils.ts": "Utility functions for time operations including HH:MM parsing, duration calculation, bigint nanosecond conversion, date formatting, and validation helpers.",
+  "frontend/src/utils/csvExport.ts": "Client-side CSV export utility that converts FlightEntry arrays to downloadable Excel-compatible CSV files with proper BOM encoding and all required headers.",
+  "frontend/src/hooks/useQueries.ts": "All React Query hooks for backend interactions including user profile, dashboard stats, entity CRUD, aircraft list with hours tracking, aircraft hours recording mutation, flight logging, filtering, and admin checks. Added `useGetAircraftList` and `useRecordAircraftHours` hooks, and updated entity mutations to also invalidate the `aircraftList` query key when the `aircraft` list type is affected.",
+  "frontend/src/components/LoginScreen.tsx": "Aviation-themed login screen with Internet Identity authentication, logo display, feature preview cards, and error handling.",
+  "frontend/src/components/ProfileSetup.tsx": "First-time user profile setup modal with name and email fields, validation, and backend persistence using saveCallerUserProfile.",
+  "frontend/src/components/AppSidebar.tsx": "Collapsible sidebar navigation with links to all app sections, user profile display, and logout functionality using the shadcn Sidebar component.",
+  "frontend/src/components/Layout.tsx": "Authenticated app layout wrapping all pages with the sidebar, sticky header with sidebar trigger, and main content area via React Router Outlet.",
+  "frontend/src/components/StatCard.tsx": "Reusable dashboard statistic card displaying a title, large value, optional subtitle, and icon with optional amber accent styling.",
+  "frontend/src/components/EntityManager.tsx": "Reusable CRUD management component for entity lists (students/instructors/aircraft/exercises) with inline editing, add, and delete functionality.",
+  "frontend/src/components/FlightRecordsTable.tsx": "Responsive flight records display with desktop table view and mobile card view, including flight type and landing type badges with proper formatting.",
+  "frontend/src/pages/Dashboard.tsx": "Dashboard page that fetches both raw flight entries and the aircraft list, computes daily/monthly stats from flights client-side, and merges flight-log-derived minutes with manually entered aircraft hours (from `totalHours`) to produce a combined aircraft utilization display with hours labels.",
+  "frontend/src/pages/LogFlight.tsx": "Flight logging form with all required fields, auto-calculated duration, dropdown selectors from entity lists, validation, and success feedback.",
+  "frontend/src/pages/FlightRecords.tsx": "Flight records page with month/student/aircraft filters, search/reset controls, CSV export button, and the FlightRecordsTable component.",
+  "frontend/src/pages/ManageStudents.tsx": "Students management page wrapping the EntityManager component for the students list type.",
+  "frontend/src/pages/ManageInstructors.tsx": "Instructors management page wrapping the EntityManager component for the instructors list type.",
+  "frontend/src/pages/ManageAircraft.tsx": "Custom aircraft management page that fetches the full Aircraft list (with totalHours and hourLog) and renders each aircraft as a collapsible card showing the current total hours badge, inline edit/delete controls, a tabbed panel with a daily hours logging form (date + hours input) and a sortable history table of all hour log entries.",
+  "frontend/src/pages/ManageExercises.tsx": "Exercises management page wrapping the EntityManager component for the exercises list type.",
+  "frontend/src/pages/NotFound.tsx": "404 not found page with aviation theme and a link back to the dashboard.",
+  "frontend/src/App.tsx": "Main app component with TanStack Router setup, authentication guard, profile setup modal, all route definitions, and footer with caffeine.ai attribution."
+}

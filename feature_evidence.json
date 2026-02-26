@@ -1,0 +1,44 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-an-aircraft-hours-section-to-the-manage-aircraft-page-for-each-aircraft-display-its-current-total-hours-combined-from-daily-manual-entries-and-flight-log-calculations-allow-users-to-log-a-daily-hours-update-by-entering-a-date-and-hours-flown-which-appends-to-that-aircraft-s-daily-log-show-a-history-table-of-all-daily-hour-entries-date-hours-added-per-aircraft-accessible-via-an-expand-detail-view",
+      "featureTitle": "Add an 'Aircraft Hours' section to the Manage Aircraft page. For each aircraft, display its current total hours (combined from daily manual entries and flight log calculations). Allow users to log a daily hours update by entering a date and hours flown, which appends to that aircraft's daily log. Show a history table of all daily hour entries (date, hours added) per aircraft, accessible via an expand/detail view.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/ManageAircraft.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-dashboard-s-per-aircraft-utilization-table-to-display-total-hours-per-aircraft-using-the-new-combined-calculation-manually-entered-daily-updates-auto-calculated-hours-from-flight-log-entries-the-displayed-total-hours-must-reflect-both-sources",
+      "featureTitle": "Update the Dashboard's per-aircraft utilization table to display total hours per aircraft using the new combined calculation (manually entered daily updates + auto-calculated hours from flight log entries). The displayed total hours must reflect both sources.",
+      "files": [
+        "frontend/src/pages/Dashboard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-10"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

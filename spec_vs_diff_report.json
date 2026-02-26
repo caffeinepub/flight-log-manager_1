@@ -1,0 +1,59 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-26T10:05:25.597Z",
+  "summary": "The diff implements most requirements across REQ-8, REQ-9, and REQ-10. Backend is extended with HourLogEntry, Aircraft entity with totalHours and hourLog, and new methods. Frontend adds aircraft hours UI on ManageAircraft page and Dashboard utilization is updated. A few acceptance criteria have partial or unclear implementation based on the truncated diff.",
+  "missing_requirements": [
+    {
+      "id": "REQ-8",
+      "requirement": "A backend method returns the full list of daily update entries for a given aircraft.",
+      "reason": "The diff shows backend/main.mo but it is truncated. No explicit getAircraftHourLog or equivalent method returning daily entries for a given aircraft ID is visible in the truncated output. The migration and Aircraft type are defined, but the specific query method is not confirmed.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Total hours for each aircraft are computed as the sum of manually entered daily updates plus hours derived from flight log entries for that aircraft.",
+      "reason": "The backend main.mo is truncated and no server-side combined calculation method is visible. The Dashboard.tsx computes this client-side, which may not satisfy the backend requirement for computing and returning running total hours from the backend combining both sources.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "A per-aircraft history of daily hour entries is viewable (date, hours added), sorted by date descending.",
+      "reason": "ManageAircraft.tsx is truncated after the DailyHoursForm component definition. The history table and sort-by-date-descending behavior are described in the file summary but cannot be fully confirmed from the visible diff content.",
+      "evidence": [
+        "frontend/src/pages/ManageAircraft.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "backend/migration.mo migration module with OldActor/NewActor types and a run() function to migrate existing aircraft data",
+      "reason": "The build request does not mention a migration module or any data migration strategy. While migrating existing data is implicitly necessary, the explicit migration.mo file with typed old/new actor structures was not requested.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "description": "Hours input in ManageAircraft.tsx is restricted to whole integer hours only (rounded to nearest integer), despite accepting decimal input in the form",
+      "reason": "The build request specifies hours flown that day as a value but does not restrict it to whole integers. The implementation explicitly rounds decimal input to whole hours, which is a design constraint not specified in the requirements.",
+      "evidence": [
+        "frontend/src/pages/ManageAircraft.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/pages/ManageAircraft.tsx",
+    "project_state.json"
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "kind": "build_request",
+  "title": "Add Aircraft Hours Tracking with Daily Updates and Automatic Calculations",
+  "projectName": "Flight Log Manager",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-8",
+      "text": "Extend the Aircraft entity in the backend to store a cumulative total hours value and a list of daily hour log entries (date + hours added). Add backend methods to: (1) record a daily hour update for a specific aircraft (date and hours flown that day), (2) retrieve the full daily hour log for an aircraft, and (3) compute and return the running total hours for each aircraft combining both manually entered daily updates and hours auto-calculated from logged flight entries.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "add the option Aircraft hours or daily updates hour in the application and calculation to hours"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Aircraft entity model includes a cumulative total hours field and a daily update log (array of date + hours pairs).",
+        "A backend method exists to add a daily hour update entry for a given aircraft ID with a date and hours value.",
+        "A backend method returns the full list of daily update entries for a given aircraft.",
+        "Total hours for each aircraft are computed as the sum of manually entered daily updates plus hours derived from flight log entries for that aircraft.",
+        "Existing aircraft CRUD operations remain unaffected."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add an 'Aircraft Hours' section to the Manage Aircraft page. For each aircraft, display its current total hours (combined from daily manual entries and flight log calculations). Allow users to log a daily hours update by entering a date and hours flown, which appends to that aircraft's daily log. Show a history table of all daily hour entries (date, hours added) per aircraft, accessible via an expand/detail view.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "add the option Aircraft hours or daily updates hour in the application and calculation to hours"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each aircraft card/row on the Manage Aircraft page shows the aircraft's current total hours.",
+        "A form is available per aircraft to enter a daily hours update (date + hours value) and submit it.",
+        "Submitting a daily update immediately refreshes the displayed total hours.",
+        "A per-aircraft history of daily hour entries is viewable (date, hours added), sorted by date descending.",
+        "The UI follows the existing aviation-themed dark navy design with amber accent colors."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Update the Dashboard's per-aircraft utilization table to display total hours per aircraft using the new combined calculation (manually entered daily updates + auto-calculated hours from flight log entries). The displayed total hours must reflect both sources.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "calculation to hours"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Dashboard aircraft utilization table shows total hours per aircraft that includes both flight-log-derived hours and manually entered daily updates.",
+        "If an aircraft has no flights and no manual entries, it shows 0 hours.",
+        "Dashboard data refreshes correctly after a new daily update is submitted."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not break existing flight log CRUD, authentication, or CSV export functionality.",
+    "All backend logic must remain in the single main.mo actor.",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui."
+  ],
+  "nonGoals": [
+    "Automatic syncing of aircraft hours to external maintenance systems.",
+    "Per-instructor or per-student hours tracking (only aircraft hours are in scope).",
+    "Modifying the flight entry form fields beyond what already exists."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

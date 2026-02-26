@@ -1,0 +1,46 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add Aircraft Hours Tracking with Daily Updates and Automatic Calculations",
+  "requirements": [
+    {
+      "id": "REQ-9",
+      "summary": "Add Aircraft Hours section to Manage Aircraft page with daily update logging and history view",
+      "acceptanceCriteria": [
+        "Each aircraft card/row on the Manage Aircraft page shows the aircraft's current total hours.",
+        "A form is available per aircraft to enter a daily hours update (date + hours value) and submit it.",
+        "Submitting a daily update immediately refreshes the displayed total hours.",
+        "A per-aircraft history of daily hour entries is viewable (date, hours added), sorted by date descending.",
+        "The UI follows the existing aviation-themed dark navy design with amber accent colors."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ManageAircraft.tsx",
+          "operation": "modify",
+          "description": "Replace the EntityManager-based view with a custom aircraft management component that displays each aircraft's total hours (from the Aircraft entity's totalHours field). Add a collapsible/expandable section per aircraft containing: (1) a form to log daily hours (date picker + hours input), (2) a history table showing all hourLog entries (date and hours columns) sorted by date descending. Wire the form submission to call the recordAircraftHours backend method and invalidate the aircraft query to refresh total hours display. Ensure the UI uses the aviation-themed dark navy background with amber accent colors matching the existing design system."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the useGetAircraftList query hook to use actor.getAircraftList() which now returns Array<Aircraft> (with totalHours and hourLog fields) instead of Array<Entity>. Add a new mutation hook useRecordAircraftHours that calls actor.recordAircraftHours(aircraftId, date, hours) and invalidates the 'aircraftList' query key on success. Add a query hook useGetAircraftHourLog(aircraftId) that calls actor.getAircraftHourLog(aircraftId) to fetch the full hour log for a specific aircraft (optional, use if needed for detailed history views)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Update Dashboard aircraft utilization table to show combined total hours from flight logs and manual daily updates",
+      "acceptanceCriteria": [
+        "The Dashboard aircraft utilization table shows total hours per aircraft that includes both flight-log-derived hours and manually entered daily updates.",
+        "If an aircraft has no flights and no manual entries, it shows 0 hours.",
+        "Dashboard data refreshes correctly after a new daily update is submitted."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Update the aircraft utilization display logic to use the aircraftUtilization field from DashboardStats returned by actor.getDashboardStats(), which now contains the combined total hours (manual daily updates plus flight-log-derived hours) per aircraft. Remove any client-side aircraft hours computation. Ensure aircraft with zero flights and no manual entries display 0 hours. The dashboard query already auto-refreshes via React Query invalidation when aircraft hours are updated."
+        }
+      ]
+    }
+  ]
+}
