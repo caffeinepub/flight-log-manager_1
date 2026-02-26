@@ -2,8 +2,28 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-aircraft-hours-section-to-the-manage-aircraft-page-for-each-aircraft-display-its-current-total-hours-combined-from-daily-manual-entries-and-flight-log-calculations-allow-users-to-log-a-daily-hours-update-by-entering-a-date-and-hours-flown-which-appends-to-that-aircraft-s-daily-log-show-a-history-table-of-all-daily-hour-entries-date-hours-added-per-aircraft-accessible-via-an-expand-detail-view",
-      "featureTitle": "Add an 'Aircraft Hours' section to the Manage Aircraft page. For each aircraft, display its current total hours (combined from daily manual entries and flight log calculations). Allow users to log a daily hours update by entering a date and hours flown, which appends to that aircraft's daily log. Show a history table of all daily hour entries (date, hours added) per aircraft, accessible via an expand/detail view.",
+      "featureId": "feature-diagnose-and-fix-the-logflight-page-so-that-submitting-a-new-flight-entry-correctly-calls-the-backend-mutation-persists-the-record-and-displays-a-success-notification-ensure-all-required-fields-date-student-instructor-aircraft-exercise-flight-type-times-landing-details-are-properly-validated-and-submitted",
+      "featureTitle": "Diagnose and fix the LogFlight page so that submitting a new flight entry correctly calls the backend mutation, persists the record, and displays a success notification. Ensure all required fields (date, student, instructor, aircraft, exercise, flight type, times, landing details) are properly validated and submitted.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/LogFlight.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-diagnose-and-fix-all-action-buttons-edit-delete-update-daily-hours-on-the-manageaircraft-page-ensure-the-react-query-mutations-for-adding-aircraft-updating-aircraft-deleting-aircraft-and-recording-daily-hours-are-correctly-wired-and-the-ui-reflects-changes-after-each-mutation",
+      "featureTitle": "Diagnose and fix all action buttons (edit, delete, update daily hours) on the ManageAircraft page. Ensure the React Query mutations for adding aircraft, updating aircraft, deleting aircraft, and recording daily hours are correctly wired and the UI reflects changes after each mutation.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/ManageAircraft.tsx"
@@ -17,15 +37,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-9"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-dashboard-s-per-aircraft-utilization-table-to-display-total-hours-per-aircraft-using-the-new-combined-calculation-manually-entered-daily-updates-auto-calculated-hours-from-flight-log-entries-the-displayed-total-hours-must-reflect-both-sources",
-      "featureTitle": "Update the Dashboard's per-aircraft utilization table to display total hours per aircraft using the new combined calculation (manually entered daily updates + auto-calculated hours from flight log entries). The displayed total hours must reflect both sources.",
+      "featureId": "feature-audit-the-usequeries-ts-hooks-for-the-flight-log-and-aircraft-mutations-ensure-that-mutation-functions-correctly-call-the-backend-actor-methods-that-onsuccess-handlers-invalidate-the-appropriate-query-keys-and-that-error-states-are-handled-and-surfaced-to-the-ui",
+      "featureTitle": "Audit the useQueries.ts hooks for the flight log and aircraft mutations. Ensure that mutation functions correctly call the backend actor methods, that onSuccess handlers invalidate the appropriate query keys, and that error states are handled and surfaced to the UI.",
       "files": [
-        "frontend/src/pages/Dashboard.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -36,7 +56,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-10"
+        "REQ-3"
       ],
       "confidence": "high"
     }

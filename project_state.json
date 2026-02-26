@@ -1,148 +1,50 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Flight Log Manager web application for aviation schools. Features user authentication (email/password login), flight logging with student/instructor/aircraft/exercise tracking, solo/dual flight types, takeoff/landing times with auto-calculated duration, day/night landing tracking, and a dashboard showing daily/monthly summaries and per-aircraft hour utilization. Includes CRUD management for students, instructors, aircraft, and exercises, plus CSV/Excel export and date/student/aircraft filtering.",
-  "architectural_notes": [
-    "Web application (not native APK) — runs in browser on Android/iOS/desktop",
-    "Aviation-themed UI: navy blue and cyan color scheme",
-    "CSV-based data storage for flights, students, instructors, aircraft, exercises"
+  "projectStateVersion": 3,
+  "summary": "Flight logging application with aircraft management and flight records CRUD operations.",
+  "architectural_notes": [],
+  "known_issues": [
+    "Flight log not working for Aircraft — reported by user, fix in progress"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-a-username-email-and-password-authentication-system-store-user-credentials-in-the-backend-provide-a-login-screen-where-users-can-sign-in-with-email-and-password-after-login-all-app-content-is-accessible-unauthenticated-users-are-redirected-to-the-login-page",
-      "title": "Implement a username/email and password authentication system. Store user credentials in the backend. Provide a login screen where users can sign in with email and password. After login, all app content is accessible; unauthenticated users are redirected to the login page.",
+      "id": "feature-diagnose-and-fix-the-logflight-page-so-that-submitting-a-new-flight-entry-correctly-calls-the-backend-mutation-persists-the-record-and-displays-a-success-notification-ensure-all-required-fields-date-student-instructor-aircraft-exercise-flight-type-times-landing-details-are-properly-validated-and-submitted",
+      "title": "Diagnose and fix the LogFlight page so that submitting a new flight entry correctly calls the backend mutation, persists the record, and displays a success notification. Ensure all required fields (date, student, instructor, aircraft, exercise, flight type, times, landing details) are properly validated and submitted.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-a-dashboard-page-as-the-default-landing-screen-after-login-the-dashboard-must-display-1-today-s-total-flights-and-total-flight-hours-2-current-month-s-total-flights-and-total-flight-hours-3-a-per-aircraft-utilization-table-showing-each-aircraft-and-its-total-logged-hours-4-a-list-of-the-most-recent-flight-entries",
-      "title": "Implement a Dashboard page as the default landing screen after login. The dashboard must display: (1) today's total flights and total flight hours, (2) current month's total flights and total flight hours, (3) a per-aircraft utilization table showing each aircraft and its total logged hours, (4) a list of the most recent flight entries.",
+      "id": "feature-diagnose-and-fix-all-action-buttons-edit-delete-update-daily-hours-on-the-manageaircraft-page-ensure-the-react-query-mutations-for-adding-aircraft-updating-aircraft-deleting-aircraft-and-recording-daily-hours-are-correctly-wired-and-the-ui-reflects-changes-after-each-mutation",
+      "title": "Diagnose and fix all action buttons (edit, delete, update daily hours) on the ManageAircraft page. Ensure the React Query mutations for adding aircraft, updating aircraft, deleting aircraft, and recording daily hours are correctly wired and the UI reflects changes after each mutation.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-a-flight-log-entry-screen-allowing-users-to-log-a-flight-with-the-following-fields-date-auto-populated-to-today-editable-student-dropdown-from-students-list-instructor-dropdown-from-instructors-list-aircraft-dropdown-from-aircraft-list-exercise-dropdown-from-exercises-list-flight-type-solo-dual-takeoff-time-hh-mm-landing-time-hh-mm-total-duration-auto-calculated-from-takeoff-and-landing-times-landing-type-day-night-and-landing-count-integer-save-each-flight-entry-to-the-backend",
-      "title": "Implement a Flight Log entry screen allowing users to log a flight with the following fields: Date (auto-populated to today, editable), Student (dropdown from students list), Instructor (dropdown from instructors list), Aircraft (dropdown from aircraft list), Exercise (dropdown from exercises list), Flight Type (Solo / Dual), Takeoff time (HH:MM), Landing time (HH:MM), Total duration (auto-calculated from takeoff and landing times), Landing Type (Day / Night), and Landing Count (integer). Save each flight entry to the backend.",
+      "id": "feature-audit-the-usequeries-ts-hooks-for-the-flight-log-and-aircraft-mutations-ensure-that-mutation-functions-correctly-call-the-backend-actor-methods-that-onsuccess-handlers-invalidate-the-appropriate-query-keys-and-that-error-states-are-handled-and-surfaced-to-the-ui",
+      "title": "Audit the useQueries.ts hooks for the flight log and aircraft mutations. Ensure that mutation functions correctly call the backend actor methods, that onSuccess handlers invalidate the appropriate query keys, and that error states are handled and surfaced to the UI.",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-flight-records-view-that-displays-all-logged-flights-in-a-scrollable-list-or-table-include-filter-controls-for-month-yyyy-mm-format-student-name-and-aircraft-provide-search-and-reset-actions-each-row-must-show-all-flight-fields-including-date-student-instructor-aircraft-exercise-type-takeoff-landing-duration-landing-type-and-landing-count",
-      "title": "Implement a Flight Records view that displays all logged flights in a scrollable list or table. Include filter controls for: month (YYYY-MM format), student name, and aircraft. Provide Search and Reset actions. Each row must show all flight fields including date, student, instructor, aircraft, exercise, type, takeoff, landing, duration, landing type, and landing count.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-csv-export-of-the-flight-log-when-the-user-clicks-an-export-button-in-the-flight-records-view-generate-a-downloadable-csv-file-containing-all-currently-filtered-or-all-flight-records-with-column-headers-date-student-instructor-aircraft-type-exercise-takeoff-landing-total-landingtype-landingcount",
-      "title": "Implement CSV export of the flight log. When the user clicks an Export button in the Flight Records view, generate a downloadable CSV file containing all currently filtered (or all) flight records with column headers: Date, Student, Instructor, Aircraft, Type, Exercise, Takeoff, Landing, Total, LandingType, LandingCount.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-crud-management-screens-for-four-entity-lists-students-instructors-aircraft-and-exercises-each-management-screen-must-allow-adding-a-new-entry-editing-an-existing-entry-and-deleting-an-entry-these-lists-feed-the-dropdown-selectors-in-the-flight-log-form",
-      "title": "Implement CRUD management screens for four entity lists: Students, Instructors, Aircraft, and Exercises. Each management screen must allow adding a new entry, editing an existing entry, and deleting an entry. These lists feed the dropdown selectors in the flight log form.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-cohesive-aviation-themed-visual-design-across-the-entire-application-use-a-dark-navy-background-with-crisp-white-text-amber-golden-accent-colors-for-key-actions-and-highlights-instead-of-blue-cyan-clean-sans-serif-typography-card-based-layouts-for-dashboard-statistics-and-a-side-navigation-bar-for-main-sections-dashboard-log-flight-flight-records-students-instructors-aircraft-exercises-the-design-must-be-fully-responsive-for-mobile-tablet-and-desktop-viewports",
-      "title": "Apply a cohesive aviation-themed visual design across the entire application. Use a dark navy background with crisp white text, amber/golden accent colors for key actions and highlights (instead of blue/cyan), clean sans-serif typography, card-based layouts for dashboard statistics, and a side navigation bar for main sections (Dashboard, Log Flight, Flight Records, Students, Instructors, Aircraft, Exercises). The design must be fully responsive for mobile, tablet, and desktop viewports.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-an-aircraft-hours-section-to-the-manage-aircraft-page-for-each-aircraft-display-its-current-total-hours-combined-from-daily-manual-entries-and-flight-log-calculations-allow-users-to-log-a-daily-hours-update-by-entering-a-date-and-hours-flown-which-appends-to-that-aircraft-s-daily-log-show-a-history-table-of-all-daily-hour-entries-date-hours-added-per-aircraft-accessible-via-an-expand-detail-view",
-      "title": "Add an 'Aircraft Hours' section to the Manage Aircraft page. For each aircraft, display its current total hours (combined from daily manual entries and flight log calculations). Allow users to log a daily hours update by entering a date and hours flown, which appends to that aircraft's daily log. Show a history table of all daily hour entries (date, hours added) per aircraft, accessible via an expand/detail view.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-dashboard-s-per-aircraft-utilization-table-to-display-total-hours-per-aircraft-using-the-new-combined-calculation-manually-entered-daily-updates-auto-calculated-hours-from-flight-log-entries-the-displayed-total-hours-must-reflect-both-sources",
-      "title": "Update the Dashboard's per-aircraft utilization table to display total hours per aircraft using the new combined calculation (manually entered daily updates + auto-calculated hours from flight log entries). The displayed total hours must reflect both sources.",
-      "reqIds": [
-        "REQ-10"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-1",
-      "summary": "User login with email and password authentication",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Flight log entry: date, student, instructor, aircraft, exercise, solo/dual, takeoff/landing times, auto-calculated duration, day/night landing type, landing count",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Dashboard showing today's flights & hours, monthly flights & hours, per-aircraft hour utilization, and recent flights list",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
       "id": "AR-4",
-      "summary": "CRUD management screens for students, instructors, aircraft, and exercises",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Filter flight records by date, student name, and aircraft",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Export flight logs to CSV/Excel-compatible format",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Responsive mobile-friendly design with aviation-themed UI (navy blue and cyan)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Add aircraft hours tracking with daily update option and automatic hour calculations (total hours per aircraft, daily hour logs)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Extend the Aircraft entity in the backend to store a cumulative total hours value and a list of daily hour log entries (date + hours added). Add backend methods to: (1) record a daily hour update for a specific aircraft (date and hours flown that day), (2) retrieve the full daily hour log for an aircraft, and (3) compute and return the running total hours for each aircraft combining both manually entered daily updates and hours auto-calculated from logged flight entries.",
+      "summary": "Verify the backend Motoko actor CRUD operations for flight entries and aircraft are correctly implemented and returning expected results. Ensure addFlightEntry, updateAircraft, deleteAircraft, and recordDailyHours functions handle all edge cases (missing records, authorization) without silent failures.",
       "reqIds": [
-        "REQ-8"
+        "REQ-4"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Flight Log Manager",
+  "projectName": "Flight Log",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

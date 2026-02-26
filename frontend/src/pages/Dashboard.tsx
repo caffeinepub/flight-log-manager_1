@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGetFlights, useGetAircraftList } from '../hooks/useQueries';
+import { useGetFlights, useGetEntities } from '../hooks/useQueries';
 import StatCard from '../components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -7,7 +7,7 @@ import {
   LayoutDashboard, PlaneTakeoff, Clock, Calendar, Plane, History
 } from 'lucide-react';
 import { formatDate, formatDuration, formatHoursFromMinutes } from '../utils/timeUtils';
-import { FlightEntry, FlightType, Aircraft } from '../backend';
+import { FlightEntry, FlightType } from '../backend';
 
 function DashboardSkeleton() {
   return (
@@ -72,37 +72,17 @@ function computeFlightStats(flights: FlightEntry[]) {
   };
 }
 
-// Combine flight-log minutes with manual aircraft hour entries
+// Build aircraft utilization from flight-log minutes
 function computeAircraftUtilization(
-  flightMinutesMap: Map<string, number>,
-  aircraftList: Aircraft[]
+  flightMinutesMap: Map<string, number>
 ): Array<[string, number]> {
-  // Build a map of aircraft name -> total hours from manual entries (in minutes)
-  const manualMinutesMap = new Map<string, number>();
-  for (const ac of aircraftList) {
-    const manualHours = Number(ac.totalHours);
-    manualMinutesMap.set(ac.name, manualHours * 60);
-  }
-
-  // Merge: all aircraft names from both sources
-  const allNames = new Set<string>([
-    ...flightMinutesMap.keys(),
-    ...manualMinutesMap.keys(),
-  ]);
-
-  const result: Array<[string, number]> = [];
-  for (const name of allNames) {
-    const flightMins = flightMinutesMap.get(name) || 0;
-    const manualMins = manualMinutesMap.get(name) || 0;
-    result.push([name, flightMins + manualMins]);
-  }
-
+  const result: Array<[string, number]> = Array.from(flightMinutesMap.entries());
   return result.sort((a, b) => b[1] - a[1]);
 }
 
 export default function Dashboard() {
   const { data: flights, isLoading: flightsLoading, isError: flightsError } = useGetFlights();
-  const { data: aircraftList = [], isLoading: aircraftLoading } = useGetAircraftList();
+  const { data: _aircraftEntities = [], isLoading: aircraftLoading } = useGetEntities('aircraft');
 
   const isLoading = flightsLoading || aircraftLoading;
 
@@ -118,7 +98,7 @@ export default function Dashboard() {
 
   const allFlights = flights || [];
   const stats = computeFlightStats(allFlights);
-  const aircraftUtilization = computeAircraftUtilization(stats.flightMinutesMap, aircraftList);
+  const aircraftUtilization = computeAircraftUtilization(stats.flightMinutesMap);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -181,7 +161,6 @@ export default function Dashboard() {
                 {aircraftUtilization.map(([aircraft, minutes]) => {
                   const maxMinutes = aircraftUtilization[0][1];
                   const pct = maxMinutes > 0 ? (minutes / maxMinutes) * 100 : 0;
-                  // Convert minutes to hours for display
                   const totalHours = Math.floor(minutes / 60);
                   const remainingMins = minutes % 60;
                   const hoursLabel = remainingMins > 0

@@ -89,20 +89,14 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface Aircraft {
-    id: bigint;
-    totalHours: bigint;
-    name: string;
-    hourLog: Array<HourLogEntry>;
-}
 export interface Entity {
     id: bigint;
     name: string;
 }
 export type Time = bigint;
-export interface HourLogEntry {
-    hours: bigint;
-    date: Time;
+export interface AircraftInput {
+    totalHours: bigint;
+    name: string;
 }
 export interface DashboardStats {
     aircraftUtilization: Array<[string, bigint]>;
@@ -145,13 +139,12 @@ export enum UserRole {
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addEntity(listType: string, name: string): Promise<void>;
+    addFlightEntry(date: Time, student: string, instructor: string, aircraft: string, exercise: string, flightType: FlightType, takeoffTime: string, landingTime: string, duration: bigint, landingType: LandingType, landingCount: bigint): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    computeRunningTotalHours(aircraftId: bigint): Promise<bigint>;
+    deleteAircraft(aircraftId: bigint): Promise<void>;
     deleteEntity(listType: string, id: bigint): Promise<void>;
     editEntity(listType: string, id: bigint, newName: string): Promise<void>;
     filterFlights(month: string, student: string, aircraftFilter: string): Promise<Array<FlightEntry>>;
-    getAircraftHourLog(aircraftId: bigint): Promise<Array<HourLogEntry>>;
-    getAircraftList(): Promise<Array<Aircraft>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDashboardStats(): Promise<DashboardStats>;
@@ -159,9 +152,9 @@ export interface backendInterface {
     getFlights(): Promise<Array<FlightEntry>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    logFlight(entry: FlightEntry): Promise<void>;
-    recordAircraftHours(aircraftId: bigint, date: Time, hours: bigint): Promise<void>;
+    recordDailyHours(aircraftId: bigint, dayHours: bigint, nightHours: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateAircraft(aircraftId: bigint, updatedAircraft: AircraftInput): Promise<void>;
 }
 import type { DashboardStats as _DashboardStats, FlightEntry as _FlightEntry, FlightType as _FlightType, LandingType as _LandingType, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -194,31 +187,45 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
+    async addFlightEntry(arg0: Time, arg1: string, arg2: string, arg3: string, arg4: string, arg5: FlightType, arg6: string, arg7: string, arg8: bigint, arg9: LandingType, arg10: bigint): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.addFlightEntry(arg0, arg1, arg2, arg3, arg4, to_candid_FlightType_n1(this._uploadFile, this._downloadFile, arg5), arg6, arg7, arg8, to_candid_LandingType_n3(this._uploadFile, this._downloadFile, arg9), arg10);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.addFlightEntry(arg0, arg1, arg2, arg3, arg4, to_candid_FlightType_n1(this._uploadFile, this._downloadFile, arg5), arg6, arg7, arg8, to_candid_LandingType_n3(this._uploadFile, this._downloadFile, arg9), arg10);
             return result;
         }
     }
-    async computeRunningTotalHours(arg0: bigint): Promise<bigint> {
+    async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.computeRunningTotalHours(arg0);
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n5(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.computeRunningTotalHours(arg0);
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n5(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async deleteAircraft(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteAircraft(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteAircraft(arg0);
             return result;
         }
     }
@@ -254,84 +261,56 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.filterFlights(arg0, arg1, arg2);
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.filterFlights(arg0, arg1, arg2);
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getAircraftHourLog(arg0: bigint): Promise<Array<HourLogEntry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAircraftHourLog(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAircraftHourLog(arg0);
-            return result;
-        }
-    }
-    async getAircraftList(): Promise<Array<Aircraft>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAircraftList();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAircraftList();
-            return result;
+            return from_candid_vec_n7(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n11(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n11(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async getDashboardStats(): Promise<DashboardStats> {
         if (this.processError) {
             try {
                 const result = await this.actor.getDashboardStats();
-                return from_candid_DashboardStats_n13(this._uploadFile, this._downloadFile, result);
+                return from_candid_DashboardStats_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getDashboardStats();
-            return from_candid_DashboardStats_n13(this._uploadFile, this._downloadFile, result);
+            return from_candid_DashboardStats_n17(this._uploadFile, this._downloadFile, result);
         }
     }
     async getEntities(arg0: string): Promise<Array<Entity>> {
@@ -352,28 +331,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getFlights();
-                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getFlights();
-            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n7(this._uploadFile, this._downloadFile, result);
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n10(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -390,31 +369,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async logFlight(arg0: FlightEntry): Promise<void> {
+    async recordDailyHours(arg0: bigint, arg1: bigint, arg2: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.logFlight(to_candid_FlightEntry_n15(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.recordDailyHours(arg0, arg1, arg2);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.logFlight(to_candid_FlightEntry_n15(this._uploadFile, this._downloadFile, arg0));
-            return result;
-        }
-    }
-    async recordAircraftHours(arg0: bigint, arg1: Time, arg2: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.recordAircraftHours(arg0, arg1, arg2);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.recordAircraftHours(arg0, arg1, arg2);
+            const result = await this.actor.recordDailyHours(arg0, arg1, arg2);
             return result;
         }
     }
@@ -432,26 +397,40 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateAircraft(arg0: bigint, arg1: AircraftInput): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateAircraft(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateAircraft(arg0, arg1);
+            return result;
+        }
+    }
 }
-function from_candid_DashboardStats_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DashboardStats): DashboardStats {
-    return from_candid_record_n14(_uploadFile, _downloadFile, value);
+function from_candid_DashboardStats_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DashboardStats): DashboardStats {
+    return from_candid_record_n18(_uploadFile, _downloadFile, value);
 }
-function from_candid_FlightEntry_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _FlightEntry): FlightEntry {
-    return from_candid_record_n5(_uploadFile, _downloadFile, value);
+function from_candid_FlightEntry_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _FlightEntry): FlightEntry {
+    return from_candid_record_n9(_uploadFile, _downloadFile, value);
 }
-function from_candid_FlightType_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _FlightType): FlightType {
-    return from_candid_variant_n7(_uploadFile, _downloadFile, value);
+function from_candid_FlightType_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _FlightType): FlightType {
+    return from_candid_variant_n11(_uploadFile, _downloadFile, value);
 }
-function from_candid_LandingType_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LandingType): LandingType {
-    return from_candid_variant_n9(_uploadFile, _downloadFile, value);
+function from_candid_LandingType_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LandingType): LandingType {
+    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n12(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n16(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     aircraftUtilization: Array<[string, bigint]>;
     monthlyTotalFlights: bigint;
     dailyTotalHours: bigint;
@@ -471,11 +450,11 @@ function from_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uin
         monthlyTotalFlights: value.monthlyTotalFlights,
         dailyTotalHours: value.dailyTotalHours,
         monthlyTotalHours: value.monthlyTotalHours,
-        recentFlights: from_candid_vec_n3(_uploadFile, _downloadFile, value.recentFlights),
+        recentFlights: from_candid_vec_n7(_uploadFile, _downloadFile, value.recentFlights),
         dailyTotalFlights: value.dailyTotalFlights
     };
 }
-function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     duration: bigint;
     instructor: string;
     date: _Time;
@@ -505,16 +484,30 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         instructor: value.instructor,
         date: value.date,
         exercise: value.exercise,
-        flightType: from_candid_FlightType_n6(_uploadFile, _downloadFile, value.flightType),
+        flightType: from_candid_FlightType_n10(_uploadFile, _downloadFile, value.flightType),
         aircraft: value.aircraft,
         student: value.student,
         takeoffTime: value.takeoffTime,
         landingTime: value.landingTime,
-        landingType: from_candid_LandingType_n8(_uploadFile, _downloadFile, value.landingType),
+        landingType: from_candid_LandingType_n12(_uploadFile, _downloadFile, value.landingType),
         landingCount: value.landingCount
     };
 }
-function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    dual: null;
+} | {
+    solo: null;
+}): FlightType {
+    return "dual" in value ? FlightType.dual : "solo" in value ? FlightType.solo : value;
+}
+function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    day: null;
+} | {
+    night: null;
+}): LandingType {
+    return "day" in value ? LandingType.day : "night" in value ? LandingType.night : value;
+}
+function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -523,75 +516,19 @@ function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    dual: null;
-} | {
-    solo: null;
-}): FlightType {
-    return "dual" in value ? FlightType.dual : "solo" in value ? FlightType.solo : value;
+function from_candid_vec_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_FlightEntry>): Array<FlightEntry> {
+    return value.map((x)=>from_candid_FlightEntry_n8(_uploadFile, _downloadFile, x));
 }
-function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    day: null;
-} | {
-    night: null;
-}): LandingType {
-    return "day" in value ? LandingType.day : "night" in value ? LandingType.night : value;
-}
-function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_FlightEntry>): Array<FlightEntry> {
-    return value.map((x)=>from_candid_FlightEntry_n4(_uploadFile, _downloadFile, x));
-}
-function to_candid_FlightEntry_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: FlightEntry): _FlightEntry {
-    return to_candid_record_n16(_uploadFile, _downloadFile, value);
-}
-function to_candid_FlightType_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: FlightType): _FlightType {
-    return to_candid_variant_n18(_uploadFile, _downloadFile, value);
-}
-function to_candid_LandingType_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: LandingType): _LandingType {
-    return to_candid_variant_n20(_uploadFile, _downloadFile, value);
-}
-function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+function to_candid_FlightType_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: FlightType): _FlightType {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    duration: bigint;
-    instructor: string;
-    date: Time;
-    exercise: string;
-    flightType: FlightType;
-    aircraft: string;
-    student: string;
-    takeoffTime: string;
-    landingTime: string;
-    landingType: LandingType;
-    landingCount: bigint;
-}): {
-    duration: bigint;
-    instructor: string;
-    date: _Time;
-    exercise: string;
-    flightType: _FlightType;
-    aircraft: string;
-    student: string;
-    takeoffTime: string;
-    landingTime: string;
-    landingType: _LandingType;
-    landingCount: bigint;
-} {
-    return {
-        duration: value.duration,
-        instructor: value.instructor,
-        date: value.date,
-        exercise: value.exercise,
-        flightType: to_candid_FlightType_n17(_uploadFile, _downloadFile, value.flightType),
-        aircraft: value.aircraft,
-        student: value.student,
-        takeoffTime: value.takeoffTime,
-        landingTime: value.landingTime,
-        landingType: to_candid_LandingType_n19(_uploadFile, _downloadFile, value.landingType),
-        landingCount: value.landingCount
-    };
+function to_candid_LandingType_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: LandingType): _LandingType {
+    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
 }
-function to_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: FlightType): {
+function to_candid_UserRole_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n6(_uploadFile, _downloadFile, value);
+}
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: FlightType): {
     dual: null;
 } | {
     solo: null;
@@ -602,7 +539,18 @@ function to_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint
         solo: null
     } : value;
 }
-function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: LandingType): {
+    day: null;
+} | {
+    night: null;
+} {
+    return value == LandingType.day ? {
+        day: null
+    } : value == LandingType.night ? {
+        night: null
+    } : value;
+}
+function to_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     user: null;
@@ -615,17 +563,6 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         user: null
     } : value == UserRole.guest ? {
         guest: null
-    } : value;
-}
-function to_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: LandingType): {
-    day: null;
-} | {
-    night: null;
-} {
-    return value == LandingType.day ? {
-        day: null
-    } : value == LandingType.night ? {
-        night: null
     } : value;
 }
 export interface CreateActorOptions {

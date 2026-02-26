@@ -7,20 +7,14 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface Aircraft {
-    id: bigint;
-    totalHours: bigint;
-    name: string;
-    hourLog: Array<HourLogEntry>;
-}
 export interface Entity {
     id: bigint;
     name: string;
 }
 export type Time = bigint;
-export interface HourLogEntry {
-    hours: bigint;
-    date: Time;
+export interface AircraftInput {
+    totalHours: bigint;
+    name: string;
 }
 export interface DashboardStats {
     aircraftUtilization: Array<[string, bigint]>;
@@ -62,13 +56,12 @@ export enum UserRole {
 }
 export interface backendInterface {
     addEntity(listType: string, name: string): Promise<void>;
+    addFlightEntry(date: Time, student: string, instructor: string, aircraft: string, exercise: string, flightType: FlightType, takeoffTime: string, landingTime: string, duration: bigint, landingType: LandingType, landingCount: bigint): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    computeRunningTotalHours(aircraftId: bigint): Promise<bigint>;
+    deleteAircraft(aircraftId: bigint): Promise<void>;
     deleteEntity(listType: string, id: bigint): Promise<void>;
     editEntity(listType: string, id: bigint, newName: string): Promise<void>;
     filterFlights(month: string, student: string, aircraftFilter: string): Promise<Array<FlightEntry>>;
-    getAircraftHourLog(aircraftId: bigint): Promise<Array<HourLogEntry>>;
-    getAircraftList(): Promise<Array<Aircraft>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDashboardStats(): Promise<DashboardStats>;
@@ -76,7 +69,7 @@ export interface backendInterface {
     getFlights(): Promise<Array<FlightEntry>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    logFlight(entry: FlightEntry): Promise<void>;
-    recordAircraftHours(aircraftId: bigint, date: Time, hours: bigint): Promise<void>;
+    recordDailyHours(aircraftId: bigint, dayHours: bigint, nightHours: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateAircraft(aircraftId: bigint, updatedAircraft: AircraftInput): Promise<void>;
 }

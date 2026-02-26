@@ -8,16 +8,16 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const UserRole = IDL.Variant({
-  'admin' : IDL.Null,
-  'user' : IDL.Null,
-  'guest' : IDL.Null,
-});
 export const Time = IDL.Int;
 export const FlightType = IDL.Variant({ 'dual' : IDL.Null, 'solo' : IDL.Null });
 export const LandingType = IDL.Variant({
   'day' : IDL.Null,
   'night' : IDL.Null,
+});
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
 });
 export const FlightEntry = IDL.Record({
   'duration' : IDL.Nat,
@@ -32,13 +32,6 @@ export const FlightEntry = IDL.Record({
   'landingType' : LandingType,
   'landingCount' : IDL.Nat,
 });
-export const HourLogEntry = IDL.Record({ 'hours' : IDL.Nat, 'date' : Time });
-export const Aircraft = IDL.Record({
-  'id' : IDL.Nat,
-  'totalHours' : IDL.Nat,
-  'name' : IDL.Text,
-  'hourLog' : IDL.Vec(HourLogEntry),
-});
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
@@ -52,12 +45,33 @@ export const DashboardStats = IDL.Record({
   'dailyTotalFlights' : IDL.Nat,
 });
 export const Entity = IDL.Record({ 'id' : IDL.Nat, 'name' : IDL.Text });
+export const AircraftInput = IDL.Record({
+  'totalHours' : IDL.Nat,
+  'name' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addEntity' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'addFlightEntry' : IDL.Func(
+      [
+        Time,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        FlightType,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        LandingType,
+        IDL.Nat,
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'computeRunningTotalHours' : IDL.Func([IDL.Nat], [IDL.Nat], ['query']),
+  'deleteAircraft' : IDL.Func([IDL.Nat], [], []),
   'deleteEntity' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'editEntity' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
   'filterFlights' : IDL.Func(
@@ -65,12 +79,6 @@ export const idlService = IDL.Service({
       [IDL.Vec(FlightEntry)],
       ['query'],
     ),
-  'getAircraftHourLog' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(HourLogEntry)],
-      ['query'],
-    ),
-  'getAircraftList' : IDL.Func([], [IDL.Vec(Aircraft)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getDashboardStats' : IDL.Func([], [DashboardStats], ['query']),
@@ -82,22 +90,22 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'logFlight' : IDL.Func([FlightEntry], [], []),
-  'recordAircraftHours' : IDL.Func([IDL.Nat, Time, IDL.Nat], [], []),
+  'recordDailyHours' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateAircraft' : IDL.Func([IDL.Nat, AircraftInput], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Time = IDL.Int;
+  const FlightType = IDL.Variant({ 'dual' : IDL.Null, 'solo' : IDL.Null });
+  const LandingType = IDL.Variant({ 'day' : IDL.Null, 'night' : IDL.Null });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const Time = IDL.Int;
-  const FlightType = IDL.Variant({ 'dual' : IDL.Null, 'solo' : IDL.Null });
-  const LandingType = IDL.Variant({ 'day' : IDL.Null, 'night' : IDL.Null });
   const FlightEntry = IDL.Record({
     'duration' : IDL.Nat,
     'instructor' : IDL.Text,
@@ -111,13 +119,6 @@ export const idlFactory = ({ IDL }) => {
     'landingType' : LandingType,
     'landingCount' : IDL.Nat,
   });
-  const HourLogEntry = IDL.Record({ 'hours' : IDL.Nat, 'date' : Time });
-  const Aircraft = IDL.Record({
-    'id' : IDL.Nat,
-    'totalHours' : IDL.Nat,
-    'name' : IDL.Text,
-    'hourLog' : IDL.Vec(HourLogEntry),
-  });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
   const DashboardStats = IDL.Record({
     'aircraftUtilization' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
@@ -128,12 +129,33 @@ export const idlFactory = ({ IDL }) => {
     'dailyTotalFlights' : IDL.Nat,
   });
   const Entity = IDL.Record({ 'id' : IDL.Nat, 'name' : IDL.Text });
+  const AircraftInput = IDL.Record({
+    'totalHours' : IDL.Nat,
+    'name' : IDL.Text,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addEntity' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'addFlightEntry' : IDL.Func(
+        [
+          Time,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          FlightType,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          LandingType,
+          IDL.Nat,
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'computeRunningTotalHours' : IDL.Func([IDL.Nat], [IDL.Nat], ['query']),
+    'deleteAircraft' : IDL.Func([IDL.Nat], [], []),
     'deleteEntity' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'editEntity' : IDL.Func([IDL.Text, IDL.Nat, IDL.Text], [], []),
     'filterFlights' : IDL.Func(
@@ -141,12 +163,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(FlightEntry)],
         ['query'],
       ),
-    'getAircraftHourLog' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(HourLogEntry)],
-        ['query'],
-      ),
-    'getAircraftList' : IDL.Func([], [IDL.Vec(Aircraft)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getDashboardStats' : IDL.Func([], [DashboardStats], ['query']),
@@ -158,9 +174,9 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'logFlight' : IDL.Func([FlightEntry], [], []),
-    'recordAircraftHours' : IDL.Func([IDL.Nat, Time, IDL.Nat], [], []),
+    'recordDailyHours' : IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateAircraft' : IDL.Func([IDL.Nat, AircraftInput], [], []),
   });
 };
 

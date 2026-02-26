@@ -1,44 +1,67 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Aircraft Hours Tracking with Daily Updates and Automatic Calculations",
+  "title": "Fix Flight Log and Aircraft functionality",
   "requirements": [
     {
-      "id": "REQ-9",
-      "summary": "Add Aircraft Hours section to Manage Aircraft page with daily update logging and history view",
+      "id": "REQ-1",
+      "summary": "Fix LogFlight page to correctly submit flight entries with proper validation, backend mutation calls, success notifications, and error handling",
       "acceptanceCriteria": [
-        "Each aircraft card/row on the Manage Aircraft page shows the aircraft's current total hours.",
-        "A form is available per aircraft to enter a daily hours update (date + hours value) and submit it.",
-        "Submitting a daily update immediately refreshes the displayed total hours.",
-        "A per-aircraft history of daily hour entries is viewable (date, hours added), sorted by date descending.",
-        "The UI follows the existing aviation-themed dark navy design with amber accent colors."
+        "User can submit a complete flight entry from the LogFlight page without errors",
+        "The flight record appears in the FlightRecords table after submission",
+        "A success toast notification is shown on successful log",
+        "Validation errors are shown inline for missing or invalid fields"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LogFlight.tsx",
+          "operation": "modify",
+          "description": "Fix the form submission handler to properly call the addFlightEntry mutation with all required fields (date, student, instructor, aircraft, exercise, flightType, takeoffTime, landingTime, duration, landingType, landingCount). Ensure the mutation's onSuccess callback shows a success toast and resets the form. Add proper error handling to display validation errors inline for missing or invalid fields. Verify that the duration calculation from takeoffTime and landingTime is correct before submission."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Fix the useAddFlightEntry mutation hook to correctly call actor.addFlightEntry with all parameters in the correct order matching the backend interface signature. Ensure the onSuccess callback invalidates the query keys ['flights'], ['dashboardStats'], and any entity lists that might be affected. Add proper error catching and ensure errors from the backend are surfaced to the UI via the mutation's error state."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Fix all action buttons on ManageAircraft page including add, edit, delete, and daily hours recording with proper mutation wiring and cache invalidation",
+      "acceptanceCriteria": [
+        "Add Aircraft form successfully creates a new aircraft and shows it in the list",
+        "Inline edit on an aircraft row saves changes and updates the list",
+        "Delete button removes the aircraft from the list with confirmation",
+        "Record daily hours form updates aircraft hours and reflects the new value",
+        "All mutations invalidate the aircraft query cache so the list re-fetches"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/ManageAircraft.tsx",
           "operation": "modify",
-          "description": "Replace the EntityManager-based view with a custom aircraft management component that displays each aircraft's total hours (from the Aircraft entity's totalHours field). Add a collapsible/expandable section per aircraft containing: (1) a form to log daily hours (date picker + hours input), (2) a history table showing all hourLog entries (date and hours columns) sorted by date descending. Wire the form submission to call the recordAircraftHours backend method and invalidate the aircraft query to refresh total hours display. Ensure the UI uses the aviation-themed dark navy background with amber accent colors matching the existing design system."
+          "description": "Fix all mutation handlers for add aircraft, inline edit, delete, and record daily hours. Ensure the add aircraft form calls the mutation with proper AircraftInput shape (name, totalHours). Fix the inline edit handler to call updateAircraft with the correct aircraftId and updated data. Ensure the delete button shows a confirmation dialog before calling deleteAircraft. Fix the record daily hours form to call recordDailyHours with aircraftId, dayHours, and nightHours. Add proper loading states and error feedback for each action. Ensure success toasts are shown after each successful mutation."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update the useGetAircraftList query hook to use actor.getAircraftList() which now returns Array<Aircraft> (with totalHours and hourLog fields) instead of Array<Entity>. Add a new mutation hook useRecordAircraftHours that calls actor.recordAircraftHours(aircraftId, date, hours) and invalidates the 'aircraftList' query key on success. Add a query hook useGetAircraftHourLog(aircraftId) that calls actor.getAircraftHourLog(aircraftId) to fetch the full hour log for a specific aircraft (optional, use if needed for detailed history views)."
+          "description": "Fix all aircraft-related mutation hooks (useAddAircraft, useUpdateAircraft, useDeleteAircraft, useRecordDailyHours) to correctly call the corresponding actor methods with proper parameter types and order. Ensure each mutation's onSuccess callback invalidates the query keys ['entities', 'aircraft'], ['dashboardStats'], and ['flights'] where applicable. Add proper error handling so backend errors are caught and exposed via the mutation error state for UI display."
         }
       ]
     },
     {
-      "id": "REQ-10",
-      "summary": "Update Dashboard aircraft utilization table to show combined total hours from flight logs and manual daily updates",
+      "id": "REQ-3",
+      "summary": "Audit and fix useQueries.ts hooks for flight log and aircraft mutations to ensure correct actor method calls, query invalidation, and error handling",
       "acceptanceCriteria": [
-        "The Dashboard aircraft utilization table shows total hours per aircraft that includes both flight-log-derived hours and manually entered daily updates.",
-        "If an aircraft has no flights and no manual entries, it shows 0 hours.",
-        "Dashboard data refreshes correctly after a new daily update is submitted."
+        "All aircraft-related mutations (add, update, delete, daily hours) call the correct backend actor methods",
+        "All flight log mutations (add flight entry) call the correct backend actor method",
+        "onSuccess callbacks invalidate relevant query keys (aircraft list, flight records, dashboard stats)",
+        "Errors returned from the backend are caught and displayed to the user"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Dashboard.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update the aircraft utilization display logic to use the aircraftUtilization field from DashboardStats returned by actor.getDashboardStats(), which now contains the combined total hours (manual daily updates plus flight-log-derived hours) per aircraft. Remove any client-side aircraft hours computation. Ensure aircraft with zero flights and no manual entries display 0 hours. The dashboard query already auto-refreshes via React Query invalidation when aircraft hours are updated."
+          "description": "Comprehensively audit all mutation hooks (useAddFlightEntry, useAddAircraft, useUpdateAircraft, useDeleteAircraft, useRecordDailyHours) to verify they match the backend interface signature from backend.d.ts. Fix any parameter type mismatches or incorrect ordering. Ensure all onSuccess handlers invalidate the appropriate query keys: ['flights'] for flight mutations, ['entities', 'aircraft'] for aircraft mutations, ['dashboardStats'] for operations affecting stats. Wrap all actor calls in try-catch blocks and ensure errors are properly propagated to the mutation error state. Add descriptive error messages that can be displayed in the UI."
         }
       ]
     }

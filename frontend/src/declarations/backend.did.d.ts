@@ -10,12 +10,7 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface Aircraft {
-  'id' : bigint,
-  'totalHours' : bigint,
-  'name' : string,
-  'hourLog' : Array<HourLogEntry>,
-}
+export interface AircraftInput { 'totalHours' : bigint, 'name' : string }
 export interface DashboardStats {
   'aircraftUtilization' : Array<[string, bigint]>,
   'monthlyTotalFlights' : bigint,
@@ -40,7 +35,6 @@ export interface FlightEntry {
 }
 export type FlightType = { 'dual' : null } |
   { 'solo' : null };
-export interface HourLogEntry { 'hours' : bigint, 'date' : Time }
 export type LandingType = { 'day' : null } |
   { 'night' : null };
 export type Time = bigint;
@@ -51,13 +45,27 @@ export type UserRole = { 'admin' : null } |
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addEntity' : ActorMethod<[string, string], undefined>,
+  'addFlightEntry' : ActorMethod<
+    [
+      Time,
+      string,
+      string,
+      string,
+      string,
+      FlightType,
+      string,
+      string,
+      bigint,
+      LandingType,
+      bigint,
+    ],
+    bigint
+  >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'computeRunningTotalHours' : ActorMethod<[bigint], bigint>,
+  'deleteAircraft' : ActorMethod<[bigint], undefined>,
   'deleteEntity' : ActorMethod<[string, bigint], undefined>,
   'editEntity' : ActorMethod<[string, bigint, string], undefined>,
   'filterFlights' : ActorMethod<[string, string, string], Array<FlightEntry>>,
-  'getAircraftHourLog' : ActorMethod<[bigint], Array<HourLogEntry>>,
-  'getAircraftList' : ActorMethod<[], Array<Aircraft>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getDashboardStats' : ActorMethod<[], DashboardStats>,
@@ -65,9 +73,9 @@ export interface _SERVICE {
   'getFlights' : ActorMethod<[], Array<FlightEntry>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'logFlight' : ActorMethod<[FlightEntry], undefined>,
-  'recordAircraftHours' : ActorMethod<[bigint, Time, bigint], undefined>,
+  'recordDailyHours' : ActorMethod<[bigint, bigint, bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateAircraft' : ActorMethod<[bigint, AircraftInput], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

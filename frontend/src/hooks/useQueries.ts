@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { FlightEntry, UserProfile, Entity, Aircraft } from '../backend';
+import { FlightEntry, UserProfile, Entity, AircraftInput } from '../backend';
+import { toast } from 'sonner';
 
 // ─── User Profile ────────────────────────────────────────────────────────────
 
@@ -81,10 +82,10 @@ export function useAddEntity() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['entities', variables.listType] });
-      // Also refresh aircraft list if adding aircraft
-      if (variables.listType === 'aircraft') {
-        queryClient.invalidateQueries({ queryKey: ['aircraftList'] });
-      }
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to add: ' + msg);
     },
   });
 }
@@ -100,9 +101,10 @@ export function useEditEntity() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['entities', variables.listType] });
-      if (variables.listType === 'aircraft') {
-        queryClient.invalidateQueries({ queryKey: ['aircraftList'] });
-      }
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to update: ' + msg);
     },
   });
 }
@@ -118,48 +120,83 @@ export function useDeleteEntity() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['entities', variables.listType] });
-      if (variables.listType === 'aircraft') {
-        queryClient.invalidateQueries({ queryKey: ['aircraftList'] });
-      }
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to delete: ' + msg);
     },
   });
 }
 
 // ─── Aircraft ─────────────────────────────────────────────────────────────────
 
-export function useGetAircraftList() {
-  const { actor, isFetching: actorFetching } = useActor();
+export function useDeleteAircraft() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
 
-  return useQuery<Aircraft[]>({
-    queryKey: ['aircraftList'],
-    queryFn: async () => {
+  return useMutation({
+    mutationFn: async (aircraftId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getAircraftList();
+      return actor.deleteAircraft(aircraftId);
     },
-    enabled: !!actor && !actorFetching,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entities', 'aircraft'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      toast.success('Aircraft deleted successfully.');
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to delete aircraft: ' + msg);
+    },
   });
 }
 
-export function useRecordAircraftHours() {
+export function useUpdateAircraft() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ aircraftId, input }: { aircraftId: bigint; input: AircraftInput }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateAircraft(aircraftId, input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entities', 'aircraft'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      toast.success('Aircraft updated successfully.');
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to update aircraft: ' + msg);
+    },
+  });
+}
+
+export function useRecordDailyHours() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       aircraftId,
-      date,
-      hours,
+      dayHours,
+      nightHours,
     }: {
       aircraftId: bigint;
-      date: bigint;
-      hours: bigint;
+      dayHours: bigint;
+      nightHours: bigint;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.recordAircraftHours(aircraftId, date, hours);
+      return actor.recordDailyHours(aircraftId, dayHours, nightHours);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['aircraftList'] });
+      queryClient.invalidateQueries({ queryKey: ['entities', 'aircraft'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      toast.success('Hours logged successfully.');
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to log hours: ' + msg);
     },
   });
 }
@@ -192,18 +229,35 @@ export function useFilterFlights(month: string, student: string, aircraftFilter:
   });
 }
 
-export function useLogFlight() {
+export function useAddFlightEntry() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (entry: FlightEntry) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.logFlight(entry);
+      return actor.addFlightEntry(
+        entry.date,
+        entry.student,
+        entry.instructor,
+        entry.aircraft,
+        entry.exercise,
+        entry.flightType,
+        entry.takeoffTime,
+        entry.landingTime,
+        entry.duration,
+        entry.landingType,
+        entry.landingCount,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flights'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      toast.success('Flight logged successfully!');
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to log flight: ' + msg);
     },
   });
 }

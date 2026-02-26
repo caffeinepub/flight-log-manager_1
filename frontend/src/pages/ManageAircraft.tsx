@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { useGetAircraftList, useAddEntity, useEditEntity, useDeleteEntity, useRecordAircraftHours } from '../hooks/useQueries';
-import { Aircraft } from '../backend';
+import {
+  useGetEntities,
+  useAddEntity,
+  useEditEntity,
+  useDeleteAircraft,
+  useRecordDailyHours,
+} from '../hooks/useQueries';
+import { Entity } from '../backend';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Plane, Plus, Loader2, Pencil, Trash2, Check, X,
-  ChevronDown, ChevronUp, Clock, PlusCircle, History
+  ChevronDown, ChevronUp, PlusCircle, AlertCircle, Moon, Sun,
 } from 'lucide-react';
-import { dateToNanoseconds, formatDate } from '../utils/timeUtils';
+import { toast } from 'sonner';
 
 // ─── Add Aircraft Form ────────────────────────────────────────────────────────
 
@@ -18,9 +24,15 @@ function AddAircraftForm() {
   const addEntity = useAddEntity();
 
   const handleAdd = async () => {
-    if (!newName.trim()) return;
-    await addEntity.mutateAsync({ listType: 'aircraft', name: newName.trim() });
-    setNewName('');
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    try {
+      await addEntity.mutateAsync({ listType: 'aircraft', name: trimmed });
+      setNewName('');
+      toast.success(`Aircraft "${trimmed}" added successfully.`);
+    } catch {
+      // error already handled in mutation onError
+    }
   };
 
   return (
@@ -28,9 +40,10 @@ function AddAircraftForm() {
       <Input
         value={newName}
         onChange={(e) => setNewName(e.target.value)}
-        placeholder="Add new aircraft..."
+        placeholder="Add new aircraft (e.g. ZK-ABC)..."
         className="bg-input border-border text-foreground placeholder:text-muted-foreground"
         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+        disabled={addEntity.isPending}
       />
       <Button
         onClick={handleAdd}
@@ -52,146 +65,146 @@ function AddAircraftForm() {
 
 interface DailyHoursFormProps {
   aircraftId: bigint;
+  aircraftName: string;
   onSuccess: () => void;
 }
 
-function DailyHoursForm({ aircraftId, onSuccess }: DailyHoursFormProps) {
-  const today = new Date().toISOString().split('T')[0];
-  const [date, setDate] = useState(today);
-  const [hours, setHours] = useState('');
+function DailyHoursForm({ aircraftId, aircraftName, onSuccess }: DailyHoursFormProps) {
+  const [dayHours, setDayHours] = useState('');
+  const [nightHours, setNightHours] = useState('');
   const [error, setError] = useState('');
-  const recordHours = useRecordAircraftHours();
+  const recordDailyHours = useRecordDailyHours();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const hoursNum = parseFloat(hours);
-    if (!date) { setError('Please select a date.'); return; }
-    if (isNaN(hoursNum) || hoursNum <= 0) { setError('Please enter a valid hours value greater than 0.'); return; }
+    const dayNum = parseInt(dayHours || '0', 10);
+    const nightNum = parseInt(nightHours || '0', 10);
 
-    // Convert hours (decimal) to whole hours bigint for backend
-    // The backend stores hours as Nat (whole number), so we round to nearest integer
-    const hoursInt = Math.round(hoursNum);
-    if (hoursInt <= 0) { setError('Hours must be at least 1.'); return; }
+    if (isNaN(dayNum) || dayNum < 0) {
+      setError('Day hours must be 0 or greater.');
+      return;
+    }
+    if (isNaN(nightNum) || nightNum < 0) {
+      setError('Night hours must be 0 or greater.');
+      return;
+    }
+    if (dayNum === 0 && nightNum === 0) {
+      setError('Please enter at least some day or night hours.');
+      return;
+    }
 
-    const dateObj = new Date(date + 'T00:00:00');
-    const dateNs = dateToNanoseconds(dateObj);
-
-    await recordHours.mutateAsync({
-      aircraftId,
-      date: dateNs,
-      hours: BigInt(hoursInt),
-    });
-
-    setHours('');
-    setDate(today);
-    onSuccess();
+    try {
+      await recordDailyHours.mutateAsync({
+        aircraftId,
+        dayHours: BigInt(dayNum),
+        nightHours: BigInt(nightNum),
+      });
+      setDayHours('');
+      setNightHours('');
+      onSuccess();
+    } catch {
+      // error already handled in mutation onError
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Date</label>
+          <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <Sun className="w-3 h-3" /> Day Hours
+          </label>
           <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            type="number"
+            min="0"
+            step="1"
+            value={dayHours}
+            onChange={(e) => setDayHours(e.target.value)}
+            placeholder="e.g. 2"
             className="bg-input border-border text-foreground text-sm h-9"
+            disabled={recordDailyHours.isPending}
           />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Hours</label>
+          <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <Moon className="w-3 h-3" /> Night Hours
+          </label>
           <Input
             type="number"
-            min="1"
+            min="0"
             step="1"
-            value={hours}
-            onChange={(e) => setHours(e.target.value)}
-            placeholder="e.g. 2"
+            value={nightHours}
+            onChange={(e) => setNightHours(e.target.value)}
+            placeholder="e.g. 1"
             className="bg-input border-border text-foreground text-sm h-9"
+            disabled={recordDailyHours.isPending}
           />
         </div>
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <div className="flex items-center gap-1.5 text-xs text-destructive">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          {error}
+        </div>
+      )}
       <Button
         type="submit"
-        disabled={recordHours.isPending || !hours || !date}
+        disabled={recordDailyHours.isPending || (!dayHours && !nightHours)}
         size="sm"
         className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        {recordHours.isPending ? (
+        {recordDailyHours.isPending ? (
           <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Saving...</>
         ) : (
-          <><PlusCircle className="w-3.5 h-3.5 mr-1.5" />Log Hours</>
+          <><PlusCircle className="w-3.5 h-3.5 mr-1.5" />Log Hours for {aircraftName}</>
         )}
       </Button>
     </form>
   );
 }
 
-// ─── Hour Log History ─────────────────────────────────────────────────────────
-
-interface HourLogHistoryProps {
-  aircraft: Aircraft;
-}
-
-function HourLogHistory({ aircraft }: HourLogHistoryProps) {
-  const sorted = [...aircraft.hourLog].sort((a, b) => {
-    if (b.date > a.date) return 1;
-    if (b.date < a.date) return -1;
-    return 0;
-  });
-
-  if (sorted.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground text-center py-3">
-        No hour entries logged yet.
-      </p>
-    );
-  }
-
-  return (
-    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-      {sorted.map((entry, idx) => (
-        <div
-          key={idx}
-          className="flex items-center justify-between px-3 py-1.5 rounded-md bg-secondary/40 border border-border/30"
-        >
-          <span className="text-xs text-muted-foreground">{formatDate(entry.date)}</span>
-          <span className="text-xs font-mono font-semibold text-primary">
-            +{Number(entry.hours)}h
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ─── Aircraft Card ────────────────────────────────────────────────────────────
 
 interface AircraftCardProps {
-  aircraft: Aircraft;
+  aircraft: Entity;
 }
 
 function AircraftCard({ aircraft }: AircraftCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(aircraft.name);
-  const [activeTab, setActiveTab] = useState<'log' | 'history'>('log');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const editEntity = useEditEntity();
-  const deleteEntity = useDeleteEntity();
+  const deleteAircraft = useDeleteAircraft();
 
   const handleEditSave = async () => {
-    if (!editName.trim()) return;
-    await editEntity.mutateAsync({ listType: 'aircraft', id: aircraft.id, newName: editName.trim() });
-    setIsEditing(false);
+    const trimmed = editName.trim();
+    if (!trimmed) return;
+    try {
+      await editEntity.mutateAsync({ listType: 'aircraft', id: aircraft.id, newName: trimmed });
+      setIsEditing(false);
+      toast.success(`Aircraft renamed to "${trimmed}".`);
+    } catch {
+      // error already handled in mutation onError
+    }
   };
 
-  const handleDelete = async () => {
-    await deleteEntity.mutateAsync({ listType: 'aircraft', id: aircraft.id });
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditName(aircraft.name);
+  };
+
+  const handleDeleteClick = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      setTimeout(() => setConfirmDelete(false), 3000);
+      return;
+    }
+    setConfirmDelete(false);
+    deleteAircraft.mutate(aircraft.id);
   };
 
   return (
@@ -211,24 +224,30 @@ function AircraftCard({ aircraft }: AircraftCardProps) {
                 className="flex-1 h-8 bg-input border-border text-foreground text-sm"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleEditSave();
-                  if (e.key === 'Escape') { setIsEditing(false); setEditName(aircraft.name); }
+                  if (e.key === 'Escape') handleEditCancel();
                 }}
                 autoFocus
+                disabled={editEntity.isPending}
               />
               <Button
                 size="icon"
                 variant="ghost"
                 onClick={handleEditSave}
-                disabled={editEntity.isPending}
+                disabled={editEntity.isPending || !editName.trim()}
                 className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10 shrink-0"
+                title="Save"
               >
-                {editEntity.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                {editEntity.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Check className="w-3.5 h-3.5" />}
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => { setIsEditing(false); setEditName(aircraft.name); }}
+                onClick={handleEditCancel}
+                disabled={editEntity.isPending}
                 className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
+                title="Cancel"
               >
                 <X className="w-3.5 h-3.5" />
               </Button>
@@ -236,34 +255,42 @@ function AircraftCard({ aircraft }: AircraftCardProps) {
           ) : (
             <>
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-foreground">{aircraft.name}</span>
-              </div>
-
-              {/* Total hours badge */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 shrink-0">
-                <Clock className="w-3 h-3 text-primary" />
-                <span className="text-xs font-mono font-bold text-primary">
-                  {Number(aircraft.totalHours)}h total
+                <span className="text-sm font-semibold text-foreground truncate block">
+                  {aircraft.name}
                 </span>
               </div>
 
-              {/* Action buttons */}
+              {/* Edit button */}
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => { setIsEditing(true); setEditName(aircraft.name); }}
+                onClick={() => {
+                  setEditName(aircraft.name);
+                  setIsEditing(true);
+                }}
+                disabled={deleteAircraft.isPending}
                 className="h-8 w-8 text-muted-foreground hover:text-primary shrink-0"
+                title="Edit aircraft name"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </Button>
+
+              {/* Delete button — requires double-click confirmation */}
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={handleDelete}
-                disabled={deleteEntity.isPending}
-                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                onClick={handleDeleteClick}
+                disabled={deleteAircraft.isPending}
+                className={`h-8 w-8 shrink-0 transition-colors ${
+                  confirmDelete
+                    ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
+                    : 'text-muted-foreground hover:text-destructive'
+                }`}
+                title={confirmDelete ? 'Click again to confirm delete' : 'Delete aircraft'}
               >
-                {deleteEntity.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                {deleteAircraft.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Trash2 className="w-3.5 h-3.5" />}
               </Button>
 
               {/* Expand toggle */}
@@ -272,6 +299,7 @@ function AircraftCard({ aircraft }: AircraftCardProps) {
                   size="icon"
                   variant="ghost"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
+                  title={isOpen ? 'Collapse' : 'Expand to log hours'}
                 >
                   {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </Button>
@@ -280,48 +308,27 @@ function AircraftCard({ aircraft }: AircraftCardProps) {
           )}
         </div>
 
-        {/* Expandable section */}
-        <CollapsibleContent>
-          <div className="border-t border-border/40 px-4 py-4 space-y-4">
-            {/* Tab switcher */}
-            <div className="flex gap-1 p-1 rounded-lg bg-secondary/60 w-fit">
-              <button
-                onClick={() => setActiveTab('log')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  activeTab === 'log'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <PlusCircle className="w-3 h-3" />
-                Log Hours
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  activeTab === 'history'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <History className="w-3 h-3" />
-                History
-                {aircraft.hourLog.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary/20 text-primary text-xs">
-                    {aircraft.hourLog.length}
-                  </span>
-                )}
-              </button>
-            </div>
+        {/* Confirm delete hint */}
+        {confirmDelete && (
+          <div className="px-4 pb-2">
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Click the delete button again to confirm removal of "{aircraft.name}".
+            </p>
+          </div>
+        )}
 
-            {activeTab === 'log' ? (
-              <DailyHoursForm
-                aircraftId={aircraft.id}
-                onSuccess={() => setActiveTab('history')}
-              />
-            ) : (
-              <HourLogHistory aircraft={aircraft} />
-            )}
+        {/* Expandable section — Daily Hours Form */}
+        <CollapsibleContent>
+          <div className="border-t border-border/40 px-4 py-4">
+            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wide">
+              Log Daily Hours
+            </p>
+            <DailyHoursForm
+              aircraftId={aircraft.id}
+              aircraftName={aircraft.name}
+              onSuccess={() => setIsOpen(false)}
+            />
           </div>
         </CollapsibleContent>
       </div>
@@ -332,7 +339,7 @@ function AircraftCard({ aircraft }: AircraftCardProps) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ManageAircraft() {
-  const { data: aircraftList = [], isLoading } = useGetAircraftList();
+  const { data: aircraftList = [], isLoading, isError, refetch } = useGetEntities('aircraft');
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
@@ -369,9 +376,17 @@ export default function ManageAircraft() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <AlertCircle className="w-8 h-8 text-destructive" />
+              <p className="text-sm text-muted-foreground">Failed to load aircraft list.</p>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
           ) : aircraftList.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              No aircraft added yet. Add one above.
+              No aircraft added yet. Type a name above and click <strong>Add</strong>.
             </div>
           ) : (
             <div className="space-y-2">
@@ -385,7 +400,7 @@ export default function ManageAircraft() {
 
       {/* Info note */}
       <p className="text-xs text-muted-foreground text-center px-4">
-        Click the expand arrow on any aircraft to log daily hour updates or view the full hours history.
+        Click the expand arrow on any aircraft to log daily day and night hours.
       </p>
     </div>
   );

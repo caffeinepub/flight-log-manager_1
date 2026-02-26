@@ -5,7 +5,6 @@ import {
   createRootRoute,
   RouterProvider,
   Outlet,
-  redirect,
 } from '@tanstack/react-router';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
@@ -21,6 +20,7 @@ import ManageAircraft from './pages/ManageAircraft';
 import ManageExercises from './pages/ManageExercises';
 import NotFound from './pages/NotFound';
 import { Loader2 } from 'lucide-react';
+import { Toaster } from '@/components/ui/sonner';
 
 // ─── Root layout with auth guard ─────────────────────────────────────────────
 
@@ -176,5 +176,10 @@ declare module '@tanstack/react-router' {
 // ─── App ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster richColors position="top-right" />
+    </>
+  );
 }

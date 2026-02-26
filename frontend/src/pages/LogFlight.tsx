@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useGetEntities, useLogFlight } from '../hooks/useQueries';
+import { useGetEntities, useAddFlightEntry } from '../hooks/useQueries';
 import { FlightType, LandingType } from '../backend';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,20 +41,22 @@ interface FormErrors {
   landingCount?: string;
 }
 
+const emptyForm = (): FormData => ({
+  date: getTodayString(),
+  student: '',
+  instructor: '',
+  aircraft: '',
+  exercise: '',
+  flightType: '',
+  takeoffTime: '',
+  landingTime: '',
+  landingType: '',
+  landingCount: '1',
+});
+
 export default function LogFlight() {
   const navigate = useNavigate();
-  const [form, setForm] = useState<FormData>({
-    date: getTodayString(),
-    student: '',
-    instructor: '',
-    aircraft: '',
-    exercise: '',
-    flightType: '',
-    takeoffTime: '',
-    landingTime: '',
-    landingType: '',
-    landingCount: '1',
-  });
+  const [form, setForm] = useState<FormData>(emptyForm());
   const [errors, setErrors] = useState<FormErrors>({});
   const [success, setSuccess] = useState(false);
 
@@ -62,7 +64,7 @@ export default function LogFlight() {
   const { data: instructors = [] } = useGetEntities('instructors');
   const { data: aircraft = [] } = useGetEntities('aircraft');
   const { data: exercises = [] } = useGetEntities('exercises');
-  const logFlight = useLogFlight();
+  const addFlightEntry = useAddFlightEntry();
 
   const duration = (isValidTime(form.takeoffTime) && isValidTime(form.landingTime))
     ? calcDurationMinutes(form.takeoffTime, form.landingTime)
@@ -97,36 +99,27 @@ export default function LogFlight() {
     const dateObj = new Date(form.date + 'T00:00:00');
     const durationMins = calcDurationMinutes(form.takeoffTime, form.landingTime);
 
-    await logFlight.mutateAsync({
-      date: dateToNanoseconds(dateObj),
-      student: form.student,
-      instructor: form.instructor,
-      aircraft: form.aircraft,
-      exercise: form.exercise,
-      flightType: form.flightType as FlightType,
-      takeoffTime: form.takeoffTime,
-      landingTime: form.landingTime,
-      duration: BigInt(durationMins),
-      landingType: form.landingType as LandingType,
-      landingCount: BigInt(parseInt(form.landingCount, 10)),
-    });
-
-    setSuccess(true);
-    setTimeout(() => {
-      setSuccess(false);
-      setForm({
-        date: getTodayString(),
-        student: '',
-        instructor: '',
-        aircraft: '',
-        exercise: '',
-        flightType: '',
-        takeoffTime: '',
-        landingTime: '',
-        landingType: '',
-        landingCount: '1',
+    try {
+      await addFlightEntry.mutateAsync({
+        date: dateToNanoseconds(dateObj),
+        student: form.student,
+        instructor: form.instructor,
+        aircraft: form.aircraft,
+        exercise: form.exercise,
+        flightType: form.flightType as FlightType,
+        takeoffTime: form.takeoffTime,
+        landingTime: form.landingTime,
+        duration: BigInt(durationMins),
+        landingType: form.landingType as LandingType,
+        landingCount: BigInt(parseInt(form.landingCount, 10)),
       });
-    }, 2000);
+
+      setSuccess(true);
+      setForm(emptyForm());
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error already handled in mutation onError (toast shown)
+    }
   };
 
   const setField = (field: keyof FormData, value: string) => {
@@ -328,17 +321,17 @@ export default function LogFlight() {
               </div>
             </div>
 
-            {logFlight.isError && (
+            {addFlightEntry.isError && (
               <p className="text-destructive text-sm">Failed to log flight. Please try again.</p>
             )}
 
             <div className="flex gap-3 pt-2">
               <Button
                 type="submit"
-                disabled={logFlight.isPending}
+                disabled={addFlightEntry.isPending}
                 className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 h-11 font-semibold"
               >
-                {logFlight.isPending ? (
+                {addFlightEntry.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Saving...
